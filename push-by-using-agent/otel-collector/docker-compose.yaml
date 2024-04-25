@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  myapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - "--endpointDomain=${ENDPOINT_DOMAIN}"
+      - "--ingestPath="
+      - "--isSecure=false"
+    ports:
+      - "8081:8081"
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4318:4318"
+    environment:
+      - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
+    volumes:
+      - ./otel-collector-cfg:/etc/otel-collector
+    command:
+      - "--config=/etc/otel-collector/otel-collector-config.yaml"
+    restart: always
