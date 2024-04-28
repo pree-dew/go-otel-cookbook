@@ -2,7 +2,7 @@ receivers:
   otlp: # the OTLP receiver the app is sending metrics to
     protocols:
       http:
-        endpoint: 0.0.0.0:4318
+        endpoint: 0.0.0.0:4317
 
 processors:
   batch:

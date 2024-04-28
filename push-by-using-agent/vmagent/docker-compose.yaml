@@ -19,9 +19,9 @@ services:
     volumes:
       - vmagentdata:/vmagentdata
       - /var/tmp:/var/tmp
-      - ./vmagent_conf:/etc/vmagent/
+      - ./vmagent.yaml:/etc/vmagent.yaml
     command:
-      - "--promscrape.config=/etc/vmagent/vmagent.yaml"
+      - "--promscrape.config=/etc/vmagent.yaml"
       - "--remoteWrite.tmpDataPath=/var/tmp/vmagent/"
       - "--remoteWrite.maxDiskUsagePerURL=10737418240"
       - "--remoteWrite.url=${REMOTE_WRITE_URL}"

@@ -1,4 +1,4 @@
-module github.com/pree-dew/go-otel-remote-write/vmagent
+module github.com/pree-dew/go-otel-remote-write/otel-collector
 
 go 1.21.0
 

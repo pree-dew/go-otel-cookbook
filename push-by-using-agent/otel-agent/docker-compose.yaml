@@ -1,0 +1,60 @@
+version: '3.7'
+services:
+  myapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - "--endpointDomain=${ENDPOINT_DOMAIN}"
+      - "--ingestPath="
+      - "--isSecure=false"
+    ports:
+      - "8081:8081"
+
+  otel-collector-1:
+    container_name: otel-collector-1
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    environment:
+      - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317"  # OTLP grpc receiver
+
+  otel-collector-2:
+    container_name: otel-collector-2
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    environment:
+      - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317"   # OTLP grpc receiver
+
+  otel-collector-3:
+    container_name: otel-collector-3
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    environment:
+      - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317"   # OTLP grpc receiver
+
+  # Otel agent (running loadbalacing exporter)
+  otel-agent:
+    container_name: otel-agent
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-agent-config.yaml"]
+    volumes:
+      - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
+    ports:
+      - "4317:4317"        # OTLP http receiver
+    depends_on:
+      - otel-collector-1
+      - otel-collector-2
+      - otel-collector-3
+

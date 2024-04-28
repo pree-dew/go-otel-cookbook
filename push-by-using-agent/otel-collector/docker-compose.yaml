@@ -15,11 +15,11 @@ services:
     container_name: otel-collector
     image: otel/opentelemetry-collector-contrib:latest
     ports:
-      - "4318:4318"
+      - "4317:4317"
     environment:
       - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
     volumes:
-      - ./otel-collector-cfg:/etc/otel-collector
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     command:
-      - "--config=/etc/otel-collector/otel-collector-config.yaml"
+      - "--config=/etc/otel-collector-config.yaml"
     restart: always
