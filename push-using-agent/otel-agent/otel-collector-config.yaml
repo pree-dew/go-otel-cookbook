@@ -1,20 +1,19 @@
 receivers:
-  otlp:
+  otlp: # the OTLP receiver the app is sending metrics to
     protocols:
-      grpc:
+      http:
         endpoint: 0.0.0.0:4317
 
 processors:
+  batch:
 
 exporters:
-  debug:
-    verbosity: detailed
   prometheusremotewrite: # the PRW exporter, to ingest metrics to backend
     endpoint: ${REMOTE_WRITE_URL}
 
 service:
   pipelines:
-    metrics:
+    metrics/prod:
       receivers: [otlp]
-      processors: []
-      exporters: [debug, prometheusremotewrite]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
