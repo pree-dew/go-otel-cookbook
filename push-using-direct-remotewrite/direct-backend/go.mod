@@ -1,4 +1,4 @@
-module github.com/pree-dew/go-otel-remote-write/otel-collector
+module github.com/pree-dew/go-otel-remote-write/direct-rw-backend
 
 go 1.21.0
 

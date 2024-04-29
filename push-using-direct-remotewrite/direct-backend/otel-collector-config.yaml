@@ -1,0 +1,10 @@
+receivers:
+  otlp: # the OTLP receiver the app is sending metrics to
+    protocols:
+      http:
+
+
+service:
+  pipelines:
+    metrics/prod:
+      receivers: [otlp]
