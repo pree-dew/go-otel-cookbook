@@ -9,7 +9,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  <insert diagram here>
+  - insert diagram here
 
 - Use when you want to:
 
@@ -45,4 +45,4 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  <insert diagram here>
+  - insert diagram here
