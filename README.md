@@ -16,7 +16,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  - insert diagram here
+  ![otel-direct-remote-write-backend](images/otel-direct-remote-write-backend.png)
 
 - Use when you want to:
 
@@ -32,11 +32,11 @@ which approach to follow for their specific use case.
 
 - Cons:
 
-  - Lack of intermidiate agent implies that the application has to fulfill the role of ensuring - retrying
-    if backend not available, buffering data upto a certain point, etc.
+  - Lack of intermediate agent implies that the application has to fulfill the role of ensuring - retrying
+    if backend not available, buffering data up to a certain point, etc.
 
   - The application upfront declares that it is tightly coupled with OTel based ingestion mechanisms. If we need
-    to move this away from pure OTel based setup to an intermediatary agent based flow e.g. vmagent, it will need
+    to move this away from pure OTel based setup to an intermediate agent based flow e.g. vmagent, it will need
     code refactoring.
 
 - Try it out
@@ -51,7 +51,7 @@ which approach to follow for their specific use case.
 
   This setup currently pushes to a vmagent based backend, because the test setup doesn't have an OTel backend to write to.
 
-### Push using direct remotewrite - via collectior
+### Push using direct remotewrite - via collector
 
 - Metric ingestion flow
 
