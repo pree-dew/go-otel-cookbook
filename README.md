@@ -55,7 +55,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  ![otel-direct-remote-write-via-collector][images/otel-direct-remote-write-via-collector.png]
+  ![otel-direct-remote-write-via-collector](images/otel-direct-remote-write-via-collector.png)
 
 - Use when you want to:
 
@@ -88,7 +88,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  ![otel-push-via-agent-vmagent](otel-push-via-agent-vmagent.png)
+  ![otel-push-via-agent-vmagent](images/otel-push-via-agent-vmagent.png)
 
 - This sample setup shows integrating one of the popular metric ingestion agents e.g. vmagent which supports OTel based ingestion.
 
@@ -120,7 +120,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  ![otel-push-via-agent-otel-agent](otel-push-via-agent-otel-agent.png)
+  ![otel-push-via-agent-otel-agent](images/otel-push-via-agent-otel-agent.png)
 
 - Use when you want to:
   - Use OTel native exporter agent and do not want to maintain another agent config.
@@ -147,7 +147,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  ![otel-push-via-agent-gateway](otel-push-via-agent-gateway)
+  ![otel-push-via-agent-gateway](images/otel-push-via-agent-gateway.png)
 
 - Use when you want to:
   - Load balance ingestion layer to horizontally scale collectors.
