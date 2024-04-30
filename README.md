@@ -7,10 +7,10 @@ which approach to follow for their specific use case.
 
 ### Pre-requisite environment variables set
 
-    ```
-    export ENDPOINT_DOMAIN='http://otel-agent:4317'
-    export REMOTE_WRITE_URL='http://victoriametrics:8429/api/v1/write'
-    ```
+  ```
+  export ENDPOINT_DOMAIN='http://otel-agent:4317'
+  export REMOTE_WRITE_URL='http://victoriametrics:8429/api/v1/write'
+  ```
 
 ### Push using direct remotewrite - OTel backend
 
@@ -55,7 +55,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  - insert diagram here
+  ![otel-direct-remote-write-via-collector][images/otel-direct-remote-write-via-collector.png]
 
 - Use when you want to:
 
@@ -88,7 +88,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  - insert diagram here
+  ![otel-push-via-agent-vmagent](otel-push-via-agent-vmagent.png)
 
 - This sample setup shows integrating one of the popular metric ingestion agents e.g. vmagent which supports OTel based ingestion.
 
@@ -120,7 +120,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  - insert diagram here
+  ![otel-push-via-agent-otel-agent](otel-push-via-agent-otel-agent.png)
 
 - Use when you want to:
   - Use OTel native exporter agent and do not want to maintain another agent config.
@@ -147,7 +147,7 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  - insert diagram here
+  ![otel-push-via-agent-gateway](otel-push-via-agent-gateway)
 
 - Use when you want to:
   - Load balance ingestion layer to horizontally scale collectors.
@@ -160,3 +160,11 @@ which approach to follow for their specific use case.
 
 - Cons:
   - Requires understanding OTel config for load balancing well enough to achieve the right behaviour.
+
+- Try it out
+
+  ```
+  cd push-using-agent/otel-gateway
+
+  docker-compose up
+  ```
