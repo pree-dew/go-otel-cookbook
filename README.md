@@ -28,14 +28,16 @@ which approach to follow for their specific use case.
 
 - Pros:
 
-  - No intermediate agents e.g. vmagent, prometheus-agent are required.
+  - Simple setup - no intermediate agents e.g. vmagent, prometheus-agent are required.
 
 - Cons:
 
-  - If you already have a vmagent running to push metrics to a backend, as this approach eliminates
-    the need for an intermediatry, it also means that you have to learn OTel's metric flow better
-    and account for OTel's metrics when debugging ingestion issues. You have to replace your vmagent
-    debugging metrics by OTel metrics.
+  - Lack of intermidiate agent implies that the application has to fulfill the role of ensuring - retrying
+    if backend not available, buffering data upto a certain point, etc.
+
+  - The application upfront declares that it is tightly coupled with OTel based ingestion mechanisms. If we need
+    to move this away from pure OTel based setup to an intermediatary agent based flow e.g. vmagent, it will need
+    code refactoring.
 
 - Try it out
 
@@ -64,11 +66,15 @@ which approach to follow for their specific use case.
   - Your setup does not have an existing agent the OTel collector can write to.
 
 - Pros:
-  - Leverage your existing vmagent setup to remove the scrape functionality but still keep the remote write functionality.
-  - Transparent to the remote write endpoint. This can be used as an intermediate step to move away from running extra agents.
+  - Has an advantage over the previous flow - the application can delegate parts of the resiliency logic to the
+    collector.
+  - User can do intermediate processing via the `processor` section.
+  - When moving away from an existing agent based setup to a pure OTel setup, this flow can leverage your existing agent setup
+    to remove the scrape functionality but still keep the remote write functionality.
 
 - Cons:
   - Requires maintaining both OTel and vmagent setups.
+  - Can only support single endpoint for ingestion => scenarios like agent clustering cannot be leveraged.
 
 - Try it out
 
@@ -84,7 +90,73 @@ which approach to follow for their specific use case.
 
   - insert diagram here
 
+- This sample setup shows integrating one of the popular metric ingestion agents e.g. vmagent which supports OTel based ingestion.
+
+- Use when you want to:
+  - Instrument your code using OTel but do want to deploy OTel based metric ingestion stack.
+
+- Do not use when:
+  - You are already having an OTel based ingestion stack.
+
 - How is this different from pushing via direct remote write collector scenario described above?
-  - When using 
+  - In the collector based approach the flow was - application -> otel receiver -> otel backend (vmagent) -> storage (Levitate, Prometheus, etc.)
+  - In this approach, there is no OTel config required as per the metric ingestion flow described above.
 
+- Pros:
+  - As long as the agent supports OTel based ingestion, the application can write to it with instrumented OTel code.
 
+- Cons:
+  - Dependency on an agent outside of the OTel ecosystem.
+
+- Try it out
+
+  ```
+  cd push-using-agent/vmagent
+
+  docker-compose up
+  ```
+
+### Push using agent - otel agent
+
+- Metric ingestion flow
+
+  - insert diagram here
+
+- Use when you want to:
+  - Use OTel native exporter agent and do not want to maintain another agent config.
+
+- Do not use when:
+  - You have another agent in place and do not want to phase it out.
+
+- Pros:
+  - No need to maintain another agent - directly use the OTel agent based flow by leveraging the `exporter` section.
+
+- Cons:
+  - Similar to the earlier approaches, where if you move away from an existing known agent e.g. vmagent, you have to relearn the failure modes
+    of the new agent and account for that knowledge during debugging scenarios via metrics and logs.
+
+- Try it out
+
+  ```
+  cd push-using-agent/otel-agent
+
+  docker-compose up
+  ```
+
+### Push using agent - gateway
+
+- Metric ingestion flow
+
+  - insert diagram here
+
+- Use when you want to:
+  - Load balance ingestion layer to horizontally scale collectors.
+
+- Do not use when:
+  - Your scale isn't high enough to justify load balancing collectors.
+
+- Pros:
+  - Lays the foundation for future scalability.
+
+- Cons:
+  - Requires understanding OTel config for load balancing well enough to achieve the right behaviour.
