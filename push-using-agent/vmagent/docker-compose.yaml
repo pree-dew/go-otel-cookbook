@@ -27,7 +27,19 @@ services:
       - "--remoteWrite.url=${REMOTE_WRITE_URL}"
     restart: always
 
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics
+    ports:
+      - "8439:8429"
+    volumes:
+      - victoriametricsdata:/victoriametricsdata
+    command:
+      - "-storageDataPath=/victoriametricsdata"
+      - "-retentionPeriod=30"
+      - "-httpListenAddr=:8429"
+    restart: always
 
 volumes:
   vmagentdata: { }
-
+  victoriametricsdata: { }
