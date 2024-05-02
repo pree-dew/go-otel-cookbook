@@ -56,9 +56,9 @@ which approach to follow for their specific use case.
 
   ![otel-direct-remote-write-via-collector](images/otel-direct-remote-write-via-collector.png)
 
+**Note: Here vmagent is used as metric_expoint in otlphttp, it can be any otel backend url also, in such scenarios you don't need vmagent and victoriametrics, you can use otlp backend url in exporter**
+
 - Pros:
-  - This setup can push to a backend that supports integration with an agent (e.g. vmagent), but may not necessarily
-    be speaking the OTel protocol.
   - Has an advantage over the previous flow - the application can delegate parts of the resiliency logic to the
     collector.
   - User can do intermediate processing via the `processor` section.
@@ -98,11 +98,13 @@ which approach to follow for their specific use case.
   - In this approach, there is no OTel config required as per the metric ingestion flow described above.
 
 - Pros:
-  - This setup can leverage existing OTel compatible agents to do the ingestion.
+  - Systems already using vmagent but wants to move to otel bases instrument can take this as a starting step.
   - As long as the agent supports OTel based ingestion, the application can write to it with instrumented OTel code.
 
 - Cons:
   - Dependency on an agent outside of the OTel ecosystem.
+  - Advantages of processor in Otel collector won't be avaialble here
+  - Can be used only for sending metric based telemetry , no other types like logs and spans.
 
 - Try it out
 
@@ -127,12 +129,12 @@ which approach to follow for their specific use case.
   ![otel-push-via-agent-otel-agent](images/otel-push-via-agent-otel-agent.png)
 
 - Pros:
-  - This setup can use OTel native exporter agent.
   - No need to maintain another agent - directly use the OTel agent based flow by leveraging the `exporter` section.
 
 - Cons:
   - Similar to the earlier approaches, where if you move away from an existing known agent e.g. vmagent, you have to relearn the failure modes
     of the new agent and account for that knowledge during debugging scenarios via metrics and logs.
+  - Scalibility has to maintained as per load via manual actions.
 
 - Try it out
 
@@ -158,10 +160,14 @@ which approach to follow for their specific use case.
 
 - Pros:
   - This setup lays the foundation for future scalability by providing the ability to horizontally scale collectors.
+  - Separation of concerns such as centrally managed credentials.
   - Can act as a central metric ingestion setup across an org / business unit because of its ability to horizontally scale.
 
 - Cons:
   - Requires understanding OTel config for load balancing well enough to achieve the right behaviour.
+  - It’s one more thing to maintain and that can fail (complexity)
+  - Added latency in case of cascaded collectors
+  - Higher overall resource usage (costs)
 
 - Try it out
 
