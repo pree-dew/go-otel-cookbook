@@ -42,7 +42,7 @@ which approach to follow for their specific use case.
   docker-compose up
 
   # Make a few calls to push metrics
-  for i in $(seq 1 10); do curl http://localhost:8081/api/fast; echo; sleep 1; done
+  for i in $(seq 1 10); do curl "http://localhost:8081/api/fast"; echo; sleep 1; done
 
   # Check the pushed metric http_requests_total
   http://localhost:8439/vmui/
@@ -79,7 +79,7 @@ which approach to follow for their specific use case.
   docker-compose up
 
   # Make a few calls to push metrics
-  for i in $(seq 1 10); do curl http://localhost:8081/api/fast; echo; sleep 1; done
+  for i in $(seq 1 10); do curl "http://localhost:8081/api/fast"; echo; sleep 1; done
 
   # Check the pushed metric http_requests_total
   http://localhost:8439/vmui/
@@ -116,7 +116,7 @@ which approach to follow for their specific use case.
   docker-compose up
 
   # Make a few calls to push metrics
-  for i in $(seq 1 10); do curl http://localhost:8081/api/fast; echo; sleep 1; done
+  for i in $(seq 1 10); do curl "http://localhost:8081/api/fast"; echo; sleep 1; done
 
   # Check the pushed metric http_requests_total
   http://localhost:8439/vmui/
@@ -146,7 +146,7 @@ which approach to follow for their specific use case.
   docker-compose up
 
   # Make a few calls to push metrics
-  for i in $(seq 1 10); do curl http://localhost:8081/api/fast; echo; sleep 1; done
+  for i in $(seq 1 10); do curl "http://localhost:8081/api/fast"; echo; sleep 1; done
 
   # Check the pushed metric http_requests_total
   http://localhost:8439/vmui/
@@ -179,7 +179,7 @@ which approach to follow for their specific use case.
   docker-compose up
 
   # Make a few calls to push metrics
-  for i in $(seq 1 10); do curl http://localhost:8081/api/fast; echo; sleep 1; done
+  for i in $(seq 1 10); do curl "http://localhost:8081/api/fast"; echo; sleep 1; done
 
   # Check the pushed metric http_requests_total
   http://localhost:8439/vmui/
