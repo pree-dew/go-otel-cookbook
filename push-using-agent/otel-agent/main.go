@@ -8,21 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync/atomic"
 	"syscall"
 	"time"
 
+	otel "go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
-	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	"go.opentelemetry.io/otel/sdk/metric/export/aggregation"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	selector "go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	otelMetrics "go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
@@ -30,7 +23,7 @@ var (
 	collectorEndpoint = flag.String("endpointDomain", "localhost:8429", "host:port")
 	collectorURL      = flag.String("ingestPath", "/opentelemetry/api/v1/push", "url path for ingestion path")
 	isSecure          = flag.Bool("isSecure", false, "enables https connection for metrics push")
-	pushInterval      = flag.Duration("pushInterval", 10*time.Second, "how often push samples, aka scrapeInterval at pull model")
+	pushInterval      = flag.Duration("pushInterval", 1*time.Second, "how often push samples, aka scrapeInterval at pull model")
 	jobName           = flag.String("metrics.jobName", "otlp", "job name for web-application")
 	instanceName      = flag.String("metrics.instance", "localhost", "hostname of web-application instance")
 )
@@ -77,41 +70,35 @@ func main() {
 	log.Printf("Done!")
 }
 
-func newMetricsController(ctx context.Context) (*controller.Controller, error) {
+func newMetricsProvider(ctx context.Context) (*metric.MeterProvider, *metric.PeriodicReader, error) {
 	options := []otlpmetrichttp.Option{
 		otlpmetrichttp.WithEndpoint(*collectorEndpoint),
 		otlpmetrichttp.WithURLPath(*collectorURL),
 	}
+
 	if !*isSecure {
 		options = append(options, otlpmetrichttp.WithInsecure())
 	}
 
 	metricExporter, err := otlpmetrichttp.New(ctx, options...)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create otlphttp exporter: %w", err)
+		return nil, nil, fmt.Errorf("cannot create otlphttp exporter: %w", err)
 	}
 
-	resourceConfig, err := resource.New(ctx, resource.WithAttributes(attribute.String("job", *jobName), attribute.String("instance", *instanceName)))
+	// reader := metric.NewManualReader()
+	reader := metric.NewPeriodicReader(metricExporter, metric.WithInterval(*pushInterval))
+
+	resourceConfig, err := resource.New(ctx, resource.WithAttributes(attribute.String("service.name", "myapp"), attribute.String("job", *jobName), attribute.String("instance", *instanceName)))
 	if err != nil {
-		return nil, fmt.Errorf("cannot create meter resource: %w", err)
+		return nil, nil, fmt.Errorf("cannot create meter resource: %w", err)
 	}
 
-	meterController := controller.New(
-		processor.NewFactory(
-			selector.NewWithHistogramDistribution(
-				histogram.WithExplicitBoundaries([]float64{0.01, 0.05, 0.1, 0.5, 0.9, 1.0, 5.0, 10.0, 100.0}),
-			),
-			aggregation.CumulativeTemporalitySelector(),
-			processor.WithMemory(true),
-		),
-		controller.WithExporter(metricExporter),
-		controller.WithCollectPeriod(*pushInterval),
-		controller.WithResource(resourceConfig),
+	meterProvider := metric.NewMeterProvider(
+		metric.WithResource(resourceConfig),
+		metric.WithReader(reader),
 	)
-	if err := meterController.Start(ctx); err != nil {
-		return nil, fmt.Errorf("cannot start meter controller: %w", err)
-	}
-	return meterController, nil
+
+	return meterProvider, reader, nil
 }
 
 func newMetricsMiddleware(ctx context.Context, h http.Handler) (*metricMiddleWare, error) {
@@ -119,50 +106,38 @@ func newMetricsMiddleware(ctx context.Context, h http.Handler) (*metricMiddleWar
 		ctx: ctx,
 		h:   h,
 	}
-	mc, err := newMetricsController(ctx)
+	mc, reader, err := newMetricsProvider(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot build metrics collector: %w", err)
 	}
 
-	// if metric controller is not required then
-	// SetMeterProvide can be used like this also
-	// meterProvider := metric.NewMeterProvider(
-	//	metric.WithResource(res),
-	//	metric.WithReader(reader),
-	//)
-	// otel.SetMeterProvider(meterProvider)
+	otel.SetMeterProvider(mc)
 
-	global.SetMeterProvider(mc)
+	meter := mc.Meter("http")
 
-	prov := mc.Meter("")
-
-	// Registering metrics
-
-	// Histogram for request latency
-	mw.requestsLatency, err = prov.SyncFloat64().Histogram("http_request_latency_seconds")
+	mw.requestsCount, err = meter.Int64Counter("http_requests_total")
 	if err != nil {
-		return nil, fmt.Errorf("cannot create histogram: %w", err)
+		return nil, fmt.Errorf("cannot create http_requests_count counter: %w", err)
 	}
 
-	// Counter for total requests
-	mw.requestsCount, err = prov.SyncInt64().Counter("http_requests_total")
+	mw.activeRequests, err = meter.Int64UpDownCounter("http_requests_active")
 	if err != nil {
-		return nil, fmt.Errorf("cannot create syncInt64 counter: %w", err)
+		return nil, fmt.Errorf("cannot create http_requests_active counter: %w", err)
 	}
 
-	// Gauge for active requests
-	ar, err := prov.AsyncInt64().Gauge("http_active_requests")
+	mw.requestsLatency, err = meter.Float64Histogram("http_request_duration_seconds", otelMetrics.WithDescription("The HTTP request latencies in seconds."))
 	if err != nil {
-		return nil, fmt.Errorf("cannot create AsyncInt64 gauge: %w", err)
+		return nil, fmt.Errorf("cannot create http_request_duration_seconds histogram: %w", err)
 	}
 
-	// Registering callback for active requests
-	if err := prov.RegisterCallback([]instrument.Asynchronous{ar}, func(ctx context.Context) {
-		ar.Observe(ctx, atomic.LoadInt64(&mw.activeRequests))
-	}); err != nil {
-		return nil, fmt.Errorf("cannot Register int64 gauge: %w", err)
+	mw.onShutdown = func(ctx context.Context) error {
+		if err := mc.Shutdown(ctx); err != nil {
+			return fmt.Errorf("cannot stop metric provider: %w", err)
+		}
+		return nil
 	}
-	mw.onShutdown = mc.Stop
+
+	mw.reader = reader
 
 	return mw, nil
 }
@@ -170,9 +145,10 @@ func newMetricsMiddleware(ctx context.Context, h http.Handler) (*metricMiddleWar
 type metricMiddleWare struct {
 	ctx             context.Context
 	h               http.Handler
-	requestsCount   syncint64.Counter
-	requestsLatency syncfloat64.Histogram
-	activeRequests  int64
+	requestsCount   otelMetrics.Int64Counter
+	requestsLatency otelMetrics.Float64Histogram
+	activeRequests  otelMetrics.Int64UpDownCounter
+	reader          *metric.PeriodicReader
 
 	onShutdown func(ctx context.Context) error
 }
@@ -180,13 +156,21 @@ type metricMiddleWare struct {
 func (m *metricMiddleWare) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
 	path := r.URL.Path
-	m.requestsCount.Add(m.ctx, 1, attribute.String("path", path))
-	atomic.AddInt64(&m.activeRequests, 1)
+	m.requestsCount.Add(m.ctx, 1, otelMetrics.WithAttributes(
+		attribute.String("path", path)),
+	)
+
+	m.activeRequests.Add(m.ctx, 1, otelMetrics.WithAttributes(
+		attribute.String("path", path)),
+	)
+
 	defer func() {
-		atomic.AddInt64(&m.activeRequests, -1)
-		m.requestsLatency.Record(m.ctx, time.Since(t).Seconds(), attribute.String("path", path))
+		m.activeRequests.Add(m.ctx, -1, otelMetrics.WithAttributes(
+			attribute.String("path", path)),
+		)
+
+		m.requestsLatency.Record(m.ctx, time.Since(t).Seconds(), otelMetrics.WithAttributes(attribute.String("path", path)))
 	}()
 
 	m.h.ServeHTTP(w, r)
 }
-

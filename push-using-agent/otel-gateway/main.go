@@ -81,14 +81,6 @@ func newMetricsProvider(ctx context.Context) (*metric.MeterProvider, *metric.Per
 	}
 
 	metricExporter, err := otlpmetrichttp.New(ctx, options...)
-	//options := []otlpmetricgrpc.Option{
-	//	otlpmetricgrpc.WithEndpoint(*collectorEndpoint),
-	//	otlpmetricgrpc.WithInsecure(),
-	//}
-	//if !*isSecure {
-	//	options = append(options, otlpmetricgrpc.WithInsecure())
-	//}
-	//metricExporter, err := otlpmetricgrpc.New(ctx, options...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create otlphttp exporter: %w", err)
 	}
@@ -179,11 +171,6 @@ func (m *metricMiddleWare) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		m.requestsLatency.Record(m.ctx, time.Since(t).Seconds(), otelMetrics.WithAttributes(attribute.String("path", path)))
 	}()
-
-	// collectedMetrics := &metricdata.ResourceMetrics{}
-	// m.reader.Collect(context.TODO(), collectedMetrics)
-
-	// fmt.Printf("Collected metrics: %v\n", collectedMetrics)
 
 	m.h.ServeHTTP(w, r)
 }
