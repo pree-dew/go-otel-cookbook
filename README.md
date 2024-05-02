@@ -16,17 +16,16 @@ which approach to follow for their specific use case.
 
   <img width="624" alt="Screenshot 2024-05-02 at 6 08 51 PM" src="https://github.com/pree-dew/go-otel-remote-write/assets/132843509/1c6ad373-b7c0-427c-92fc-3ebf1b19e66e">
 
-
-**Note: Here vmagent is used as otlp compatible backend which internally remote writing to victoriametrics, if you have an otlp backend endpoint then you can use that here at place of vmagent and victoriametrics won't be required.**
+  **Note: Here vmagent is used as otlp compatible backend which internally remote writing to victoriametrics, if you have an otlp backend endpoint then you can use that here at place of vmagent and victoriametrics won't be required.**
 
 - Pros:
 
   - This setup can push directly to an OTel supported backend. Here backend means the storage system that you are going to query e.g. Prometheus.
-  - Simple setup - no intermediate agents e.g. vmagent, prometheus-agent are required.
+  - Simple setup - intermediate agents e.g. vmagent, prometheus-agent are not required.
 
 - Cons:
 
-  - Lack of intermediate agent implies that the application has to fulfill the role of ensuring - retrying
+  - Lack of intermediate agent implies that the application has to fulfill the role of resiliency - retrying
     if backend not available, buffering data up to a certain point, etc.
 
   - The application upfront declares that it is tightly coupled with OTel based ingestion mechanisms. If we need
@@ -57,11 +56,10 @@ which approach to follow for their specific use case.
 
   ![otel-direct-remote-write-via-collector](images/otel-direct-remote-write-via-collector.png)
 
-**Note: Here vmagent is used as metrics_expoint in otlphttp, it can be any otel backend url also, in such scenarios you don't need vmagent and victoriametrics, you can use otlp backend url in exporter.**
+  **Note: Here vmagent is used as metrics_endpoint in otlphttp, it can be any otel backend url also, in such scenarios you don't need vmagent and victoriametrics, you can use otlp backend url in exporter.**
 
 - Pros:
-  - Has an advantage over the previous flow - the application can delegate parts of the resiliency logic to the
-    collector.
+  - Has an advantage over the previous flow - the application can delegate parts of the resiliency logic to the collector.
   - User can do intermediate processing via the `processor` section.
   - When moving away from an existing agent based setup to a pure OTel setup, this flow can leverage your existing agent setup
     to remove the scrape functionality but still keep the remote write functionality.
@@ -99,13 +97,13 @@ which approach to follow for their specific use case.
   - In this approach, there is no OTel config required as per the metric ingestion flow described above.
 
 - Pros:
-  - Systems already using vmagent but wants to move to otel bases instrument can take this as a starting step.
+  - Systems already using vmagent but having the need to move to otel based instrumentation can take this as a starting step.
   - As long as the agent supports OTel based ingestion, the application can write to it with instrumented OTel code.
 
 - Cons:
   - Dependency on an agent outside of the OTel ecosystem.
-  - Advantages of processor in Otel collector won't be avaialble here
-  - Can be used only for sending metric based telemetry , no other types like logs and spans.
+  - Advantages of processor in Otel collector won't be available here.
+  - Can be used only for sending metric based telemetry, no other types like logs and spans.
 
 - Try it out
 
@@ -135,7 +133,7 @@ which approach to follow for their specific use case.
 - Cons:
   - Similar to the earlier approaches, where if you move away from an existing known agent e.g. vmagent, you have to relearn the failure modes
     of the new agent and account for that knowledge during debugging scenarios via metrics and logs.
-  - Scalibility has to maintained as per load via manual actions.
+  - Scalability has to maintained as per load via manual actions.
 
 - Try it out
 
