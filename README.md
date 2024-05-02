@@ -17,6 +17,8 @@ which approach to follow for their specific use case.
   <img width="624" alt="Screenshot 2024-05-02 at 6 08 51 PM" src="https://github.com/pree-dew/go-otel-remote-write/assets/132843509/1c6ad373-b7c0-427c-92fc-3ebf1b19e66e">
 
 
+**Note: Here vmagent is used as otlp compatible backend which internally remote writing to victoriametrics, if you have an otlp backend endpoint then you can use that here at place of vmagent and victoriametrics won't be required.**
+
 - Pros:
 
   - This setup can push directly to an OTel supported backend. Here backend means the storage system that you are going to query e.g. Prometheus.
@@ -57,7 +59,7 @@ which approach to follow for their specific use case.
 
   ![otel-direct-remote-write-via-collector](images/otel-direct-remote-write-via-collector.png)
 
-**Note: Here vmagent is used as metric_expoint in otlphttp, it can be any otel backend url also, in such scenarios you don't need vmagent and victoriametrics, you can use otlp backend url in exporter**
+**Note: Here vmagent is used as metrics_expoint in otlphttp, it can be any otel backend url also, in such scenarios you don't need vmagent and victoriametrics, you can use otlp backend url in exporter.**
 
 - Pros:
   - Has an advantage over the previous flow - the application can delegate parts of the resiliency logic to the
