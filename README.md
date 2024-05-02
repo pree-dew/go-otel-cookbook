@@ -14,7 +14,8 @@ which approach to follow for their specific use case.
 
 - Metric ingestion flow
 
-  ![otel-direct-remote-write-backend](images/otel-direct-remote-write-backend.png)
+  <img width="624" alt="Screenshot 2024-05-02 at 6 08 51 PM" src="https://github.com/pree-dew/go-otel-remote-write/assets/132843509/1c6ad373-b7c0-427c-92fc-3ebf1b19e66e">
+
 
 - Pros:
 
