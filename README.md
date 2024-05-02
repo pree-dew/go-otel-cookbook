@@ -51,8 +51,6 @@ which approach to follow for their specific use case.
   http://localhost:8439/vmui/
   ```
 
-  This setup currently pushes to a vmagent based backend, because the test setup doesn't have an OTel backend to write to.
-
 ### Push using direct remotewrite - via collector
 
 - Metric ingestion flow
