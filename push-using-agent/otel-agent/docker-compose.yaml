@@ -11,15 +11,31 @@ services:
     ports:
       - "8081:8081"
 
-  otel-collector:
-    container_name: otel-collector
+  otel-agent:
+    container_name: otel-agent
     image: otel/opentelemetry-collector-contrib:latest
     ports:
       - "4317:4317"
     environment:
       - REMOTE_WRITE_URL=${REMOTE_WRITE_URL}
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
     command:
-      - "--config=/etc/otel-collector-config.yaml"
+      - "--config=/etc/otel-agent-config.yaml"
     restart: always
+
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics
+    ports:
+      - "8439:8429"
+    volumes:
+      - victoriametricsdata:/victoriametricsdata
+    command:
+      - "-storageDataPath=/victoriametricsdata"
+      - "-retentionPeriod=30"
+      - "-httpListenAddr=:8429"
+    restart: always
+
+volumes:
+  victoriametricsdata: { }

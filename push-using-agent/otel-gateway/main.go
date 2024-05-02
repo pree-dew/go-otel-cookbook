@@ -81,14 +81,6 @@ func newMetricsProvider(ctx context.Context) (*metric.MeterProvider, *metric.Per
 	}
 
 	metricExporter, err := otlpmetrichttp.New(ctx, options...)
-	//options := []otlpmetricgrpc.Option{
-	//	otlpmetricgrpc.WithEndpoint(*collectorEndpoint),
-	//	otlpmetricgrpc.WithInsecure(),
-	//}
-	//if !*isSecure {
-	//	options = append(options, otlpmetricgrpc.WithInsecure())
-	//}
-	//metricExporter, err := otlpmetricgrpc.New(ctx, options...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create otlphttp exporter: %w", err)
 	}
@@ -123,14 +115,19 @@ func newMetricsMiddleware(ctx context.Context, h http.Handler) (*metricMiddleWar
 
 	meter := mc.Meter("http")
 
-	mw.requestsCount, err = meter.Int64Counter("requests_count")
+	mw.requestsCount, err = meter.Int64Counter("http_requests_total")
 	if err != nil {
-		return nil, fmt.Errorf("cannot create requests.count counter: %w", err)
+		return nil, fmt.Errorf("cannot create http_requests_count counter: %w", err)
 	}
 
-	mw.activeRequests, err = meter.Int64UpDownCounter("requests_active")
+	mw.activeRequests, err = meter.Int64UpDownCounter("http_requests_active")
 	if err != nil {
-		return nil, fmt.Errorf("cannot create requests.active counter: %w", err)
+		return nil, fmt.Errorf("cannot create http_requests_active counter: %w", err)
+	}
+
+	mw.requestsLatency, err = meter.Float64Histogram("http_request_duration_seconds", otelMetrics.WithDescription("The HTTP request latencies in seconds."))
+	if err != nil {
+		return nil, fmt.Errorf("cannot create http_request_duration_seconds histogram: %w", err)
 	}
 
 	mw.onShutdown = func(ctx context.Context) error {
@@ -157,7 +154,7 @@ type metricMiddleWare struct {
 }
 
 func (m *metricMiddleWare) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// t := time.Now()
+	t := time.Now()
 	path := r.URL.Path
 	m.requestsCount.Add(m.ctx, 1, otelMetrics.WithAttributes(
 		attribute.String("path", path)),
@@ -167,10 +164,13 @@ func (m *metricMiddleWare) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		attribute.String("path", path)),
 	)
 
-	// collectedMetrics := &metricdata.ResourceMetrics{}
-	// m.reader.Collect(context.TODO(), collectedMetrics)
+	defer func() {
+		m.activeRequests.Add(m.ctx, -1, otelMetrics.WithAttributes(
+			attribute.String("path", path)),
+		)
 
-	// fmt.Printf("Collected metrics: %v\n", collectedMetrics)
+		m.requestsLatency.Record(m.ctx, time.Since(t).Seconds(), otelMetrics.WithAttributes(attribute.String("path", path)))
+	}()
 
 	m.h.ServeHTTP(w, r)
 }

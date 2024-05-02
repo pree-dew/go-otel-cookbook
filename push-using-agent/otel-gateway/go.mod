@@ -1,4 +1,4 @@
-module github.com/pree-dew/go-otel-remote-write/otel-agent
+module github.com/pree-dew/go-otel-remote-write/otel-gateway
 
 go 1.21.0
 
