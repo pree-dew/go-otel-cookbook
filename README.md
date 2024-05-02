@@ -1,16 +1,14 @@
-## TODO
-
-1. remove use part and fuse it with pros/cons
-2. revisit pros cons from both otel and sre perspective (operationalizing,cost)
-3. remove internal readmes
-4. run docker for all and call out gaps to Preeti - X
-
 ### go-otel-cookbooks
 
 This repo describes recipes for pushing instrumented code metrics via OTel to a backend.
 The aim of this repo is to showcase the flexibility of OTel metric ingestion pipeline
 and educate the user on various approaches so that they can take an informed decision on
 which approach to follow for their specific use case.
+
+* [Push using direct remotewrite - OTel backend](#push-using-direct-remotewrite---otel-backend)
+* [Push using direct remotewrite - via collector](#push-using-direct-remotewrite---via-collector)
+* [Push using agent - vmagent](#push-using-agent---vmagent)
+* [Push using agent - otel agent](#push-using-agent---otel-agent)
 
 ### Push using direct remotewrite - OTel backend
 
