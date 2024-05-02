@@ -44,13 +44,13 @@ services:
     ports:
       - "4317"   # OTLP grpc receiver
 
-  # Otel agent (running loadbalacing exporter)
-  otel-agent:
-    container_name: otel-agent
+  # Otel gateway (running loadbalacing exporter)
+  otel-gateway:
+    container_name: otel-gateway
     image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-agent-config.yaml"]
+    command: ["--config=/etc/otel-gateway-config.yaml"]
     volumes:
-      - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
+      - ./otel-gateway-config.yaml:/etc/otel-gateway-config.yaml
     ports:
       - "4317:4317"        # OTLP http receiver
     depends_on:
@@ -58,3 +58,18 @@ services:
       - otel-collector-2
       - otel-collector-3
 
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics
+    ports:
+      - "8439:8429"
+    volumes:
+      - victoriametricsdata:/victoriametricsdata
+    command:
+      - "-storageDataPath=/victoriametricsdata"
+      - "-retentionPeriod=30"
+      - "-httpListenAddr=:8429"
+    restart: always
+
+volumes:
+  victoriametricsdata: { }
