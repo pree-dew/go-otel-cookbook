@@ -9,6 +9,7 @@ which approach to follow for their specific use case.
 * [Push using direct remotewrite - via collector](#push-using-direct-remotewrite---via-collector)
 * [Push using agent - vmagent](#push-using-agent---vmagent)
 * [Push using agent - otel agent](#push-using-agent---otel-agent)
+* [Push using agent - otel gateway](#push-using-agent---gateway)
 
 ### Push using direct remotewrite - OTel backend
 
